@@ -1,0 +1,21 @@
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Node
+node_modules/
+dist/
+build/
+
+# Mac
+.DS_Store
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Secrets
+.env

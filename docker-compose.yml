@@ -1,0 +1,119 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: metricsplay_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - metrics_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: metricsplay_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - metrics_net
+
+  zookeeper:
+    image: bitnami/zookeeper:3.9
+    container_name: metricsplay_zookeeper
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    ports:
+      - "2181:2181"
+    networks:
+      - metrics_net
+
+  kafka:
+    image: bitnami/kafka:3.7
+    container_name: metricsplay_kafka
+    environment:
+      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_LISTENERS: PLAINTEXT://:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - metrics_net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: metricsplay-kafka-ui
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+      - zookeeper
+    networks:
+      - metrics_net
+
+
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: DockerFile
+  #   container_name: metricsplay_backend
+  #   ports:
+  #     - "8080:8080"
+    # environment:
+    #   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+    #   SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+    #   SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    #   KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  #   depends_on:
+  #     - postgres
+  #     - kafka
+  #   networks:
+  #     - metrics_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: DockerFile
+    container_name: metricsplay_backend
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/pom.xml:/app/pom.xml
+      - ~/.m2:/root/.m2   # Mount local Maven cache
+    ports:
+      - "8080:8080"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - metrics_net
+    command: ./mvnw spring-boot:run
+
+
+volumes:
+  postgres_data:
+
+networks:
+  metrics_net:
