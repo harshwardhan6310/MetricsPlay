@@ -25,6 +25,8 @@ services:
       - postgres
     networks:
       - metrics_net
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
 
   zookeeper:
     image: bitnami/zookeeper:3.9
@@ -114,6 +116,7 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
 
 networks:
   metrics_net:

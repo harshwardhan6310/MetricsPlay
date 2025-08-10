@@ -27,11 +27,12 @@ public class AuthService {
     }
 
     public String signup(AuthRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("Username already exists: {}", request.getUsername());
+            throw new InvalidCredentialsException("Username already exists");
+        }
         try {
-            if (userRepository.existsByUsername(request.getUsername())) {
-                throw new InvalidCredentialsException("Username already exists");
-            }
-
+            log.info("Creating new user: {}", request.getUsername());
             User newUser = User.builder()
                     .username(request.getUsername())
                     .password(passwordEncoder.encode(request.getPassword()))
