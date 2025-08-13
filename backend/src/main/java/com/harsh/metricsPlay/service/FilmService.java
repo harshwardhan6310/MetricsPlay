@@ -94,6 +94,7 @@ public class FilmService {
                     .id(savedComment.getId())
                     .content(savedComment.getContent())
                     .username(user.getUsername())
+                    .createdAt(comment.getCreatedAt())
                     .build();
 
         } catch (DataAccessException | PersistenceException e) {

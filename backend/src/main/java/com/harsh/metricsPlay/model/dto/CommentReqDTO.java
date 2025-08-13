@@ -1,5 +1,6 @@
 package com.harsh.metricsPlay.model.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,12 @@ import lombok.ToString;
 @Builder
 @ToString
 public class CommentReqDTO {
+    @NotBlank
     private Long filmId;
-    private String username; 
+
+    @NotBlank
+    private String username;
+    
+    @NotBlank 
     private String content;
 }

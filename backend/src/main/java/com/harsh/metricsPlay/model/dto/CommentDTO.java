@@ -1,5 +1,7 @@
 package com.harsh.metricsPlay.model.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,4 +17,5 @@ public class CommentDTO {
     private Long id;
     private String username;
     private String content;
+    private LocalDateTime createdAt;
 }
