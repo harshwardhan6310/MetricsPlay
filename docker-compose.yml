@@ -19,6 +19,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      # PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 40  
     ports:
       - "5050:80"
     depends_on:
@@ -27,47 +28,49 @@ services:
       - metrics_net
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    logging:
+      driver: "none"
 
-  zookeeper:
-    image: bitnami/zookeeper:3.9
-    container_name: metricsplay_zookeeper
-    environment:
-      ALLOW_ANONYMOUS_LOGIN: "yes"
-    ports:
-      - "2181:2181"
-    networks:
-      - metrics_net
+  # zookeeper:
+  #   image: bitnami/zookeeper:3.9
+  #   container_name: metricsplay_zookeeper
+  #   environment:
+  #     ALLOW_ANONYMOUS_LOGIN: "yes"
+  #   ports:
+  #     - "2181:2181"
+  #   networks:
+  #     - metrics_net
 
-  kafka:
-    image: bitnami/kafka:3.7
-    container_name: metricsplay_kafka
-    environment:
-      KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
-      KAFKA_LISTENERS: PLAINTEXT://:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
-    ports:
-      - "9092:9092"
-    depends_on:
-      - zookeeper
-    networks:
-      - metrics_net
+  # kafka:
+  #   image: bitnami/kafka:3.7
+  #   container_name: metricsplay_kafka
+  #   environment:
+  #     KAFKA_BROKER_ID: ${KAFKA_BROKER_ID}
+  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #     KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+  #     KAFKA_LISTENERS: PLAINTEXT://:9092
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+  #   ports:
+  #     - "9092:9092"
+  #   depends_on:
+  #     - zookeeper
+  #   networks:
+  #     - metrics_net
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: metricsplay-kafka-ui
-    ports:
-      - "8081:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-    depends_on:
-      - kafka
-      - zookeeper
-    networks:
-      - metrics_net
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui:latest
+  #   container_name: metricsplay-kafka-ui
+  #   ports:
+  #     - "8081:8080"
+  #   environment:
+  #     KAFKA_CLUSTERS_0_NAME: local
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+  #     KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+  #   depends_on:
+  #     - kafka
+  #     - zookeeper
+  #   networks:
+  #     - metrics_net
 
 
   # backend:
@@ -97,6 +100,7 @@ services:
       - ./backend/src:/app/src
       - ./backend/pom.xml:/app/pom.xml
       - ~/.m2:/root/.m2   # Mount local Maven cache
+      - ./videos:/app/videos
     ports:
       - "8080:8080"
     environment:
@@ -108,7 +112,7 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       - postgres
-      - kafka
+      # - kafka
     networks:
       - metrics_net
     command: ./mvnw spring-boot:run
