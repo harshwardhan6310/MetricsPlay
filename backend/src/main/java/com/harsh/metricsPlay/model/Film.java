@@ -3,6 +3,7 @@ package com.harsh.metricsPlay.model;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,7 +37,10 @@ public class Film {
 
     private String genre;
 
+    @Column(name = "video_url")
+    private String videoUrl;
+
     @OneToMany(mappedBy = "film", cascade = CascadeType.ALL)
     private List<Comment> comments;
-
+    
 }

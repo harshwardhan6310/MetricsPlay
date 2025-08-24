@@ -62,6 +62,8 @@ public class FilmService {
                     .title(film.getTitle())
                     .description(film.getDescription())
                     .comments(commentDTOs)
+                    .videoUrl(film.getVideoUrl())
+                    .genre(film.getGenre())
                     .build();
 
         } catch (DataAccessException | PersistenceException e) {
