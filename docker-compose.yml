@@ -91,6 +91,23 @@ services:
   #   networks:
   #     - metrics_net
 
+  frontend:
+    image: node:20-alpine
+    container_name: metricsplay_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Anonymous volume for node_modules
+    ports:
+      - "4200:4200"
+    environment:
+      - NODE_ENV=development
+    command: sh -c "npm install && npm start"
+    networks:
+      - metrics_net
+    depends_on:
+      - backend
+
   backend:
     build:
       context: ./backend
