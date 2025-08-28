@@ -1,4 +1,4 @@
-package com.harsh.metricsPlay.model;
+package com.harsh.metricsPlay.model.entity;
 
 import java.time.LocalDateTime;
 

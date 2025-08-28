@@ -4,8 +4,8 @@ import org.springframework.stereotype.Service;
 
 import com.harsh.metricsPlay.exception.InvalidCredentialsException;
 import com.harsh.metricsPlay.exception.UserNotFoundException;
-import com.harsh.metricsPlay.model.User;
 import com.harsh.metricsPlay.model.dto.AuthRequest;
+import com.harsh.metricsPlay.model.entity.User;
 import com.harsh.metricsPlay.repository.UserRepository;
 import com.harsh.metricsPlay.utils.JwtUtil;
 

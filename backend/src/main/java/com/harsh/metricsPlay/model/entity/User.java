@@ -1,4 +1,4 @@
-package com.harsh.metricsPlay.model;
+package com.harsh.metricsPlay.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
