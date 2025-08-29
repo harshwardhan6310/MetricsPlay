@@ -1,0 +1,171 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="header">
+    <h1>📊 Analytics Dashboard</h1>
+    <p>Real-time insights into your MetricsPlay platform</p>
+  </div>
+
+  <!-- Overview Cards -->
+  <div class="overview-cards">
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-content">
+          <mat-icon class="metric-icon films">movie</mat-icon>
+          <div class="metric-info">
+            <span class="metric-number">{{ totalFilms }}</span>
+            <span class="metric-label">Total Films</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-content">
+          <mat-icon class="metric-icon users">people</mat-icon>
+          <div class="metric-info">
+            <span class="metric-number">{{ totalUsers }}</span>
+            <span class="metric-label">Total Users</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-content">
+          <mat-icon class="metric-icon active">live_tv</mat-icon>
+          <div class="metric-info">
+            <span class="metric-number">{{ activeViewers }}</span>
+            <span class="metric-label">Active Viewers</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="metric-card">
+      <mat-card-content>
+        <div class="metric-content">
+          <mat-icon class="metric-icon views">visibility</mat-icon>
+          <div class="metric-info">
+            <span class="metric-number">{{ totalViews }}</span>
+            <span class="metric-label">Total Views</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Film Statistics Table -->
+  <mat-card class="statistics-card">
+    <mat-card-header>
+      <mat-card-title>🎬 Film Performance Statistics</mat-card-title>
+      <mat-card-subtitle>Rankings and analytics for all films</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <table mat-table [dataSource]="filmStats" class="film-stats-table">
+        <!-- Title Column -->
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef>Film</th>
+          <td mat-cell *matCellDef="let film">
+            <div class="film-cell">
+              <strong>{{ film.title }}</strong>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Genre Column -->
+        <ng-container matColumnDef="genre">
+          <th mat-header-cell *matHeaderCellDef>Genre</th>
+          <td mat-cell *matCellDef="let film">
+            <mat-chip selected>{{ film.genre }}</mat-chip>
+          </td>
+        </ng-container>
+
+        <!-- Views Column -->
+        <ng-container matColumnDef="views">
+          <th mat-header-cell *matHeaderCellDef>Views</th>
+          <td mat-cell *matCellDef="let film">
+            <span class="metric-highlight">{{ film.totalViews }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Rating Column -->
+        <ng-container matColumnDef="rating">
+          <th mat-header-cell *matHeaderCellDef>Rating</th>
+          <td mat-cell *matCellDef="let film">
+            <div class="rating-cell">
+              <mat-icon class="star-icon">star</mat-icon>
+              <span>{{ film.avgRating }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Retention Column -->
+        <ng-container matColumnDef="retention">
+          <th mat-header-cell *matHeaderCellDef>Retention</th>
+          <td mat-cell *matCellDef="let film">
+            <div class="retention-cell">
+              <span class="retention-percentage">{{ film.retentionRate }}%</span>
+              <mat-progress-bar 
+                mode="determinate" 
+                [value]="film.retentionRate"
+                [color]="film.retentionRate > 80 ? 'primary' : film.retentionRate > 60 ? 'accent' : 'warn'">
+              </mat-progress-bar>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Watch Time Column -->
+        <ng-container matColumnDef="watchTime">
+          <th mat-header-cell *matHeaderCellDef>Watch Time</th>
+          <td mat-cell *matCellDef="let film">
+            <span class="watch-time">{{ film.totalWatchTime }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Active Viewers Column -->
+        <ng-container matColumnDef="activeViewers">
+          <th mat-header-cell *matHeaderCellDef>Live</th>
+          <td mat-cell *matCellDef="let film">
+            <div class="active-viewers" [class.has-viewers]="film.activeViewers > 0">
+              <mat-icon>{{ film.activeViewers > 0 ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+              <span>{{ film.activeViewers }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Recent Activity -->
+  <mat-card class="activity-card">
+    <mat-card-header>
+      <mat-card-title>🔔 Recent Activity</mat-card-title>
+      <mat-card-subtitle>Live feed of user interactions</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let activity of recentActivity">
+          <div class="activity-icon">
+            <mat-icon [class]="'action-' + activity.action">{{ getActionIcon(activity.action) }}</mat-icon>
+          </div>
+          <div class="activity-details">
+            <div class="activity-text">
+              <strong>{{ activity.username }}</strong>
+              <span class="action-verb">{{ activity.action }}</span>
+              <strong>{{ activity.filmTitle }}</strong>
+              <span *ngIf="activity.currentTime" class="current-time">at {{ activity.currentTime }}</span>
+            </div>
+            <div class="activity-time">{{ formatTimestamp(activity.timestamp) }}</div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -18,6 +18,8 @@ import com.harsh.metricsPlay.model.dto.VideoStreamDTO;
 import com.harsh.metricsPlay.service.FilmService;
 import com.harsh.metricsPlay.service.StreamingService;
 
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -30,6 +32,12 @@ public class FilmController {
     public FilmController(FilmService filmService, StreamingService streamingService) {
         this.filmService = filmService;
         this.streamingService = streamingService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<FilmDTO>> getAllFilms() {
+        List<FilmDTO> films = filmService.getAllFilms();
+        return ResponseEntity.ok(films);
     }
 
     @GetMapping("/{filmId}")

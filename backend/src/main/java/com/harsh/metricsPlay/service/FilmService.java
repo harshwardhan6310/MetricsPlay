@@ -64,6 +64,7 @@ public class FilmService {
                     .comments(commentDTOs)
                     .videoUrl(film.getVideoUrl())
                     .genre(film.getGenre())
+                    .duration(film.getDuration())
                     .build();
 
         } catch (DataAccessException | PersistenceException e) {
@@ -101,6 +102,30 @@ public class FilmService {
 
         } catch (DataAccessException | PersistenceException e) {
             throw new DBAccessException("An error occurred while adding the comment", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<FilmDTO> getAllFilms() {
+        try {
+            List<Film> films = filmRepository.findAll();
+            List<FilmDTO> filmDTOs = new ArrayList<>();
+            
+            for (Film film : films) {
+                filmDTOs.add(FilmDTO.builder()
+                        .id(film.getId())
+                        .title(film.getTitle())
+                        .description(film.getDescription())
+                        .videoUrl(film.getVideoUrl())
+                        .genre(film.getGenre())
+                        .duration(film.getDuration())
+                        .comments(new ArrayList<>()) // Don't load comments for list view
+                        .build());
+            }
+            
+            return filmDTOs;
+        } catch (DataAccessException | PersistenceException e) {
+            throw new DBAccessException("An error occurred while fetching all films", e);
         }
     }
 }

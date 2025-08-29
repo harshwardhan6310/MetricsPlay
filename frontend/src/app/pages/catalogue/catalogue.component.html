@@ -1,0 +1,55 @@
+<div class="catalogue-container">
+  <div class="header">
+    <h1>🎬 Film Catalogue</h1>
+    <p>Discover and watch amazing films</p>
+  </div>
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-icon class="loading-icon">refresh</mat-icon>
+    <p>Loading films...</p>
+  </div>
+  
+  <!-- Error State -->
+  <div *ngIf="error" class="error-container">
+    <mat-icon class="error-icon">error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-button (click)="loadFilms()">Try Again</button>
+  </div>
+  
+  <!-- Films Grid -->
+  <div *ngIf="!loading && !error" class="films-grid">
+    <mat-card class="film-card" *ngFor="let film of films">
+      <!-- Film Thumbnail/Preview -->
+      <div class="film-thumbnail">
+        <mat-icon class="preview-icon">movie</mat-icon>
+        <div class="play-overlay" (click)="playFilm(film)">
+          <mat-icon class="play-icon">play_circle_filled</mat-icon>
+        </div>
+      </div>
+      
+      <!-- Film Info -->
+      <mat-card-content class="film-info">
+        <div class="film-header">
+          <h3 class="film-title">{{ film.title }}</h3>
+          <mat-chip [color]="getGenreColor(film.genre)" selected>
+            {{ film.genre }}
+          </mat-chip>
+        </div>
+        
+        <p class="film-description">{{ film.description }}</p>
+        
+        <div class="film-details">
+          <span class="duration">
+            <mat-icon>schedule</mat-icon>
+            {{ film.duration }}
+          </span>
+          <span class="video-file">
+            <mat-icon>video_file</mat-icon>
+            {{ film.videoUrl }}
+          </span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

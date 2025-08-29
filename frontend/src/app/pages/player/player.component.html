@@ -1,0 +1,138 @@
+<div class="player-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-icon class="loading-icon">refresh</mat-icon>
+    <p>Loading video...</p>
+  </div>
+  
+  <!-- Error State -->
+  <div *ngIf="error" class="error-container">
+    <mat-icon class="error-icon">error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-button (click)="goBack()">Back to Catalogue</button>
+  </div>
+  
+  <!-- Video Player -->
+  <div *ngIf="!loading && !error && film" class="video-player-section">
+    <!-- Back Button -->
+    <div class="player-header">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div class="film-title-section">
+        <h2>{{ film.title }}</h2>
+        <mat-chip [color]="getGenreColor(film.genre)" selected>{{ film.genre }}</mat-chip>
+      </div>
+    </div>
+    
+    <!-- Video Element -->
+    <div class="video-container">
+      <video
+        #videoPlayer
+        class="video-element"
+        [src]="'/api/films/' + film.id + '/stream'"
+        preload="metadata"
+        [poster]="null">
+        Your browser does not support the video tag.
+      </video>
+      
+      <!-- Video Controls Overlay -->
+      <div class="video-controls" 
+           [class.visible]="controlsVisible"
+           (mousemove)="showControls()"
+           (mouseleave)="hideControls()"
+           (click)="showControls()">
+        <!-- Play/Pause Button -->
+        <button mat-fab class="play-pause-btn" 
+                [class.visible]="controlsVisible || (!isPlaying)"
+                (click)="togglePlay()"
+                (mouseenter)="showControls()">
+          <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+        </button>
+        
+        <!-- Bottom Controls -->
+        <div class="bottom-controls">
+          <!-- Progress Bar -->
+          <div class="progress-container">
+            <input
+              type="range"
+              class="progress-bar"
+              min="0"
+              max="100"
+              [value]="progress"
+              (input)="seek($event)"
+            />
+          </div>
+          
+          <!-- Control Bar -->
+          <div class="control-bar">
+            <div class="left-controls">
+              <button mat-icon-button (click)="togglePlay()">
+                <mat-icon>{{ isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+              </button>
+              
+              <div class="volume-control">
+                <button mat-icon-button (click)="toggleMute()">
+                  <mat-icon>{{ volume === 0 ? 'volume_off' : volume < 0.5 ? 'volume_down' : 'volume_up' }}</mat-icon>
+                </button>
+                <input
+                  type="range"
+                  class="volume-slider"
+                  min="0"
+                  max="100"
+                  [value]="volume * 100"
+                  (input)="setVolume($event)"
+                />
+              </div>
+              
+              <span class="time-display">
+                {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+              </span>
+            </div>
+            
+            <div class="right-controls">
+              <button mat-icon-button (click)="toggleFullscreen()">
+                <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Film Information -->
+    <mat-card class="film-info-card">
+      <mat-card-content>
+        <h3>{{ film.title }}</h3>
+        <p class="film-description">{{ film.description }}</p>
+        
+        <div class="film-meta">
+          <span class="meta-item">
+            <mat-icon>schedule</mat-icon>
+            Duration: {{ film.duration }}
+          </span>
+          <span class="meta-item">
+            <mat-icon>video_file</mat-icon>
+            File: {{ film.videoUrl }}
+          </span>
+        </div>
+        
+        <!-- Playback Stats -->
+        <div class="playback-stats">
+          <div class="stat-item">
+            <mat-icon>play_circle</mat-icon>
+            <span>Current: {{ formatTime(currentTime) }}</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon>trending_up</mat-icon>
+            <span>Progress: {{ progress.toFixed(1) }}%</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon>fingerprint</mat-icon>
+            <span>Session: {{ sessionId.split('_')[3] }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

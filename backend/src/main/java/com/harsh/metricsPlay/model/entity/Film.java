@@ -40,6 +40,8 @@ public class Film {
     @Column(name = "video_url")
     private String videoUrl;
 
+    private String duration;
+
     @OneToMany(mappedBy = "film", cascade = CascadeType.ALL)
     private List<Comment> comments;
     

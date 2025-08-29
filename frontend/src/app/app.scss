@@ -1,0 +1,25 @@
+// Global app styles
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #fafafa;
+}
+
+.app-content {
+  min-height: calc(100vh - 64px);
+  background-color: #fafafa;
+  padding-top: 64px; // Account for fixed navbar
+}
+
+// Material Design overrides
+.mat-mdc-card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+  border-radius: 12px !important;
+}

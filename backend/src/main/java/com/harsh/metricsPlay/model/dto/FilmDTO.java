@@ -19,5 +19,6 @@ public class FilmDTO {
     private String description;
     private String genre;
     private String videoUrl;
+    private String duration;
     private List<CommentDTO> comments;
 }
