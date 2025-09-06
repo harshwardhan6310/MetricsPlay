@@ -21,8 +21,10 @@ import com.harsh.metricsPlay.repository.FilmRepository;
 import com.harsh.metricsPlay.repository.UserRepository;
 
 import jakarta.persistence.PersistenceException;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class FilmService {
     private final FilmRepository filmRepository;
     private final CommentRepository commentRepository;
@@ -37,15 +39,18 @@ public class FilmService {
     @Transactional(readOnly = true)
     public FilmDTO getFilmWithComments(Long filmId) {
         try {
+            log.info("[DATABASE] Fetching film details for ID: {}", filmId);
             Optional<Film> filmOpt = filmRepository.findById(filmId);
 
             if (filmOpt.isEmpty()) {
+                log.warn("[DATABASE] Film not found with ID: {}", filmId);
                 throw new FilmNotFoundException(filmId);
             }
 
             Film film = filmOpt.get();
-            
+            log.info("[DATABASE] Film found: {} ({})", film.getTitle(), filmId);
             List<Comment> comments = commentRepository.findByFilmId(filmId);
+            log.info("[DATABASE] Found {} comments for film: {}", comments.size(), filmId);
 
             List<CommentDTO> commentDTOs = new ArrayList<>();
             for (Comment comment : comments) {

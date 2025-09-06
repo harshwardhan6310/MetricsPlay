@@ -21,7 +21,13 @@
       </button>
       <div class="film-title-section">
         <h2>{{ film.title }}</h2>
-        <mat-chip [color]="getGenreColor(film.genre)" selected>{{ film.genre }}</mat-chip>
+        <div class="film-info">
+          <mat-chip [color]="getGenreColor(film.genre)" selected>{{ film.genre }}</mat-chip>
+          <mat-chip *ngIf="currentViewers > 0" color="accent" selected>
+            <mat-icon>visibility</mat-icon>
+            {{ currentViewers }} watching
+          </mat-chip>
+        </div>
       </div>
     </div>
     

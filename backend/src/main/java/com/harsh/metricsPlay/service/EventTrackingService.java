@@ -5,12 +5,15 @@ import com.harsh.metricsPlay.model.entity.VideoEvent;
 import com.harsh.metricsPlay.model.entity.ViewingSession;
 import com.harsh.metricsPlay.repository.VideoEventRepository;
 import com.harsh.metricsPlay.repository.ViewingSessionRepository;
+import com.harsh.metricsPlay.service.kafka.EventProducerService;
+import com.harsh.metricsPlay.service.analytics.RealTimeAnalyticsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -18,16 +21,23 @@ public class EventTrackingService {
     
     private final VideoEventRepository eventRepository;
     private final ViewingSessionRepository sessionRepository;
+    private final EventProducerService eventProducerService;
+    private final RealTimeAnalyticsService analyticsService;
     
-    public EventTrackingService(VideoEventRepository eventRepository, ViewingSessionRepository sessionRepository) {
+    public EventTrackingService(VideoEventRepository eventRepository, 
+                              ViewingSessionRepository sessionRepository,
+                              EventProducerService eventProducerService,
+                              RealTimeAnalyticsService analyticsService) {
         this.eventRepository = eventRepository;
         this.sessionRepository = sessionRepository;
+        this.eventProducerService = eventProducerService;
+        this.analyticsService = analyticsService;
     }
     
     @Transactional
     public void trackVideoEvent(VideoEventDTO eventDTO) {
         try {
-            // Save the event
+            // Save the event to database
             VideoEvent event = VideoEvent.builder()
                 .eventType(eventDTO.getEventType())
                 .filmId(eventDTO.getFilmId())
@@ -43,6 +53,23 @@ public class EventTrackingService {
             eventRepository.save(event);
             log.info("Saved video event: {} for film {} at position {}", 
                 eventDTO.getEventType(), eventDTO.getFilmId(), eventDTO.getCurrentTime());
+            
+            // Create Kafka video event
+            com.harsh.metricsPlay.model.events.VideoEvent kafkaEvent = new com.harsh.metricsPlay.model.events.VideoEvent();
+            kafkaEvent.setEventId(UUID.randomUUID().toString());
+            kafkaEvent.setSessionId(eventDTO.getSessionId());
+            kafkaEvent.setUserId(eventDTO.getUsername());
+            kafkaEvent.setFilmId(eventDTO.getFilmId());
+            kafkaEvent.setEventType(eventDTO.getEventType());
+            kafkaEvent.setTimestamp(LocalDateTime.now());
+            kafkaEvent.setCurrentTime(eventDTO.getCurrentTime());
+            kafkaEvent.setDuration(eventDTO.getDuration());
+            kafkaEvent.setProgress(eventDTO.getDuration() > 0 ? (eventDTO.getCurrentTime() / eventDTO.getDuration()) * 100 : 0);
+            kafkaEvent.setUserAgent(eventDTO.getUserAgent());
+            kafkaEvent.setIpAddress(eventDTO.getIpAddress());
+            
+            // Send to Kafka for real-time processing
+            eventProducerService.sendVideoEvent(kafkaEvent);
             
             // Update or create viewing session
             updateViewingSession(eventDTO);
@@ -103,10 +130,5 @@ public class EventTrackingService {
         
         sessionRepository.save(session);
         log.debug("Updated viewing session: {}", session.getSessionId());
-    }
-    
-    public Long getActiveViewersCount(Long filmId) {
-        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
-        return sessionRepository.countRecentViewsByFilm(filmId, oneHourAgo);
     }
 }

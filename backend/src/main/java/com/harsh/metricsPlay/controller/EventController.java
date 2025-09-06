@@ -1,7 +1,7 @@
 package com.harsh.metricsPlay.controller;
 
-import com.harsh.metricsPlay.model.dto.VideoEventDTO;
-import com.harsh.metricsPlay.service.EventTrackingService;
+import com.harsh.metricsPlay.model.events.VideoEvent;
+import com.harsh.metricsPlay.service.kafka.EventProducerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -12,41 +12,28 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class EventController {
     
-    private final EventTrackingService eventTrackingService;
+    private final EventProducerService eventProducerService;
     
-    public EventController(EventTrackingService eventTrackingService) {
-        this.eventTrackingService = eventTrackingService;
+    public EventController(EventProducerService eventProducerService) {
+        this.eventProducerService = eventProducerService;
     }
     
     @PostMapping("/video")
-    public ResponseEntity<String> trackVideoEvent(@RequestBody VideoEventDTO event, HttpServletRequest request) {
+    public ResponseEntity<String> trackVideoEvent(@RequestBody VideoEvent event, HttpServletRequest request) {
         try {
-            event.setIpAddress(getClientIP(request));
-            event.setUserAgent(request.getHeader("User-Agent"));
-            
-            log.info("Received {} event for film {} from user {} at time {}", 
-                event.getEventType(), event.getFilmId(), event.getUsername(), event.getCurrentTime());
-            
-            eventTrackingService.trackVideoEvent(event);
+            log.info("[API-GATEWAY] Received HTTP POST /api/events/video from IP: {}", 
+                request.getRemoteAddr());
+            log.info("[API-GATEWAY] Event details - Type: {}, Film: {}, User: {}, Session: {}", 
+                event.getEventType(), event.getFilmId(), event.getUserId(), event.getSessionId());
+            event.setTimestamp(java.time.LocalDateTime.now());
+            log.info("[API-GATEWAY] Forwarding event to Kafka producer service");
+            eventProducerService.sendVideoEvent(event);
+            log.info("[API-GATEWAY] Event successfully forwarded to Kafka pipeline");
             return ResponseEntity.ok("Event tracked successfully");
             
         } catch (Exception e) {
-            log.error("Error tracking video event: {}", e.getMessage());
+            log.error("[API-GATEWAY] Error tracking video event: {}", e.getMessage(), e);
             return ResponseEntity.badRequest().body("Failed to track event");
         }
-    }
-    
-    @GetMapping("/active-viewers/{filmId}")
-    public ResponseEntity<Long> getActiveViewers(@PathVariable Long filmId) {
-        Long count = eventTrackingService.getActiveViewersCount(filmId);
-        return ResponseEntity.ok(count);
-    }
-    
-    private String getClientIP(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader == null) {
-            return request.getRemoteAddr();
-        }
-        return xfHeader.split(",")[0];
     }
 }

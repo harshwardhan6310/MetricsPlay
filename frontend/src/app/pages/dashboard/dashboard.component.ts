@@ -14,15 +14,7 @@ interface FilmStatistics {
   avgRating: number;
   retentionRate: number;
   totalWatchTime: string;
-  activeViewers: number;
-}
-
-interface RecentActivity {
-  username: string;
-  filmTitle: string;
-  action: string;
-  timestamp: Date;
-  currentTime?: string;
+  avgWatchTime: string;
 }
 
 @Component({
@@ -40,13 +32,13 @@ interface RecentActivity {
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
-  // Overview metrics
+  // Overview metrics (static analytics)
   totalFilms = 5;
   totalUsers = 124;
-  activeViewers = 8;
   totalViews = 1247;
+  avgSessionDuration = '8m 32s';
 
-  // Film statistics
+  // Film statistics for analytics
   filmStats: FilmStatistics[] = [
     {
       filmId: 1,
@@ -56,7 +48,7 @@ export class DashboardComponent implements OnInit {
       avgRating: 4.7,
       retentionRate: 85,
       totalWatchTime: '28h 30m',
-      activeViewers: 3
+      avgWatchTime: '5m 2s'
     },
     {
       filmId: 2,
@@ -66,7 +58,7 @@ export class DashboardComponent implements OnInit {
       avgRating: 4.8,
       retentionRate: 92,
       totalWatchTime: '42h 15m',
-      activeViewers: 2
+      avgWatchTime: '8m 46s'
     },
     {
       filmId: 3,
@@ -76,7 +68,7 @@ export class DashboardComponent implements OnInit {
       avgRating: 4.9,
       retentionRate: 78,
       totalWatchTime: '55h 42m',
-      activeViewers: 3
+      avgWatchTime: '7m 20s'
     },
     {
       filmId: 4,
@@ -86,7 +78,7 @@ export class DashboardComponent implements OnInit {
       avgRating: 4.5,
       retentionRate: 88,
       totalWatchTime: '20h 10m',
-      activeViewers: 0
+      avgWatchTime: '12m 22s'
     },
     {
       filmId: 5,
@@ -96,91 +88,24 @@ export class DashboardComponent implements OnInit {
       avgRating: 4.6,
       retentionRate: 72,
       totalWatchTime: '36h 25m',
-      activeViewers: 0
+      avgWatchTime: '3m 30s'
     }
   ];
 
-  // Recent activity
-  recentActivity: RecentActivity[] = [
-    {
-      username: 'testuser1',
-      filmTitle: 'Beautiful Flowers',
-      action: 'started',
-      timestamp: new Date(Date.now() - 2 * 60 * 1000)
-    },
-    {
-      username: 'moviefan42',
-      filmTitle: 'Space HD',
-      action: 'paused',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      currentTime: '4:32'
-    },
-    {
-      username: 'animation_lover',
-      filmTitle: 'Steamboat Willie',
-      action: 'ended',
-      timestamp: new Date(Date.now() - 8 * 60 * 1000)
-    },
-    {
-      username: 'nature_doc',
-      filmTitle: 'Wildlife Adventure',
-      action: 'seek',
-      timestamp: new Date(Date.now() - 12 * 60 * 1000),
-      currentTime: '8:45'
-    },
-    {
-      username: 'retro_gamer',
-      filmTitle: 'Pokemon Opening',
-      action: 'started',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000)
-    }
-  ];
+  displayedColumns: string[] = ['title', 'genre', 'views', 'rating', 'retention', 'watchTime'];
 
-  displayedColumns: string[] = ['title', 'genre', 'views', 'rating', 'retention', 'watchTime', 'activeViewers'];
+  constructor() {}
 
   ngOnInit() {
-    // Future: Load real data from backend
-    this.loadDashboardData();
+    console.log('Dashboard loaded with static analytics');
   }
 
-  loadDashboardData() {
-    // Future: API calls to get real analytics data
-    console.log('Loading dashboard data...');
-  }
-
-  getActionIcon(action: string): string {
-    const icons: {[key: string]: string} = {
-      'started': 'play_arrow',
-      'paused': 'pause',
-      'ended': 'stop',
-      'seek': 'fast_forward',
-      'resumed': 'play_arrow'
-    };
-    return icons[action] || 'info';
-  }
-
-  getActionColor(action: string): string {
+  getGenreColor(genre: string): string {
     const colors: {[key: string]: string} = {
-      'started': 'success',
-      'paused': 'warning',
-      'ended': 'primary',
-      'seek': 'accent',
-      'resumed': 'success'
+      'Documentary': 'primary',
+      'Animation': 'accent',
+      'Action': 'warn'
     };
-    return colors[action] || 'primary';
-  }
-
-  formatTimestamp(timestamp: Date): string {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    
-    if (minutes < 1) return 'Just now';
-    if (minutes === 1) return '1 minute ago';
-    if (minutes < 60) return `${minutes} minutes ago`;
-    
-    const hours = Math.floor(minutes / 60);
-    if (hours === 1) return '1 hour ago';
-    return `${hours} hours ago`;
+    return colors[genre] || 'primary';
   }
 }

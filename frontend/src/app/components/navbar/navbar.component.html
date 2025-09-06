@@ -25,9 +25,11 @@
     </nav>
     
     <!-- User Section -->
-    <div class="user-section">
-      <button mat-icon-button>
-        <mat-icon>account_circle</mat-icon>
+    <div class="user-section" *ngIf="currentUser">
+      <span class="user-welcome">👋 Welcome, {{ currentUser.username }}!</span>
+      <button mat-button class="logout-button" (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
+        Logout
       </button>
     </div>
   </div>
