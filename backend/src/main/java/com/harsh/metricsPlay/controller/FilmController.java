@@ -5,14 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.harsh.metricsPlay.model.dto.CommentDTO;
-import com.harsh.metricsPlay.model.dto.CommentReqDTO;
 import com.harsh.metricsPlay.model.dto.FilmDTO;
 import com.harsh.metricsPlay.model.dto.VideoStreamDTO;
 import com.harsh.metricsPlay.service.FilmService;
@@ -42,13 +38,7 @@ public class FilmController {
 
     @GetMapping("/{filmId}")
     public ResponseEntity<FilmDTO> getFilm(@PathVariable Long filmId) {
-        return ResponseEntity.ok(filmService.getFilmWithComments(filmId));
-    }
-
-    @PostMapping("/{filmId}/comments")
-    public ResponseEntity<CommentDTO> addComment(@PathVariable Long filmId, @RequestBody CommentReqDTO req) {
-        CommentDTO dto = filmService.addCommentToFilm(filmId, req.getContent(), req.getUsername());
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(filmService.getFilm(filmId));
     }
 
     @GetMapping("/{filmId}/stream")
@@ -56,7 +46,7 @@ public class FilmController {
         try {
             log.info("Streaming request for film ID: {} with Range: {}", filmId, rangeHeader);
             // Get film details
-            FilmDTO film = filmService.getFilmWithComments(filmId);
+            FilmDTO film = filmService.getFilm(filmId);
             log.info("Found film: {} with video file: {}", film.getTitle(), film.getVideoUrl());
             String videoFilename = film.getVideoUrl();
             VideoStreamDTO streamResponse = this.streamingService.getFilmChunk(videoFilename, rangeHeader);

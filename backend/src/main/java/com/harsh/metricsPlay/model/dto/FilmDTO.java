@@ -1,7 +1,5 @@
 package com.harsh.metricsPlay.model.dto;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,5 +18,4 @@ public class FilmDTO {
     private String genre;
     private String videoUrl;
     private String duration;
-    private List<CommentDTO> comments;
 }
