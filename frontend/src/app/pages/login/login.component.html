@@ -1,0 +1,162 @@
+<div class="login-container">
+  <div class="login-card">
+    <!-- Header -->
+    <div class="login-header">
+      <h1 class="app-title">
+        <span class="icon">🎬</span>
+        MetricsPlay
+      </h1>
+      <p class="subtitle">
+        {{ isLoginMode ? 'Welcome back!' : 'Join us today!' }}
+      </p>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button 
+        type="button"
+        class="tab-button"
+        [class.active]="isLoginMode"
+        (click)="isLoginMode = true; errorMessage = ''; resetForms()"
+        [disabled]="isLoading">
+        Login
+      </button>
+      <button 
+        type="button"
+        class="tab-button"
+        [class.active]="!isLoginMode"
+        (click)="isLoginMode = false; errorMessage = ''; resetForms()"
+        [disabled]="isLoading">
+        Sign Up
+      </button>
+    </div>
+
+    <!-- Error Message -->
+    <div class="error-message" *ngIf="errorMessage">
+      <span class="error-icon">⚠️</span>
+      {{ errorMessage }}
+    </div>
+
+    <!-- Login Form -->
+    <form *ngIf="isLoginMode" [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
+      <div class="form-group">
+        <label for="login-username">Username</label>
+        <input
+          id="login-username"
+          type="text"
+          formControlName="username"
+          class="form-input"
+          [class.error]="hasFieldError(loginForm, 'username')"
+          placeholder="Enter your username"
+          autocomplete="username">
+        <div class="field-error" *ngIf="hasFieldError(loginForm, 'username')">
+          {{ getFieldError(loginForm, 'username') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input
+          id="login-password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.error]="hasFieldError(loginForm, 'password')"
+          placeholder="Enter your password"
+          autocomplete="current-password">
+        <div class="field-error" *ngIf="hasFieldError(loginForm, 'password')">
+          {{ getFieldError(loginForm, 'password') }}
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        class="submit-button"
+        [disabled]="isLoading || loginForm.invalid">
+        <span *ngIf="!isLoading">🔑 Login</span>
+        <span *ngIf="isLoading" class="loading">
+          <span class="spinner"></span>
+          Logging in...
+        </span>
+      </button>
+    </form>
+
+    <!-- Signup Form -->
+    <form *ngIf="!isLoginMode" [formGroup]="signupForm" (ngSubmit)="onSignup()" class="auth-form">
+      <div class="form-group">
+        <label for="signup-username">Username</label>
+        <input
+          id="signup-username"
+          type="text"
+          formControlName="username"
+          class="form-input"
+          [class.error]="hasFieldError(signupForm, 'username')"
+          placeholder="Choose a username"
+          autocomplete="username">
+        <div class="field-error" *ngIf="hasFieldError(signupForm, 'username')">
+          {{ getFieldError(signupForm, 'username') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <input
+          id="signup-password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.error]="hasFieldError(signupForm, 'password')"
+          placeholder="Choose a password"
+          autocomplete="new-password">
+        <div class="field-error" *ngIf="hasFieldError(signupForm, 'password')">
+          {{ getFieldError(signupForm, 'password') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="signup-confirm-password">Confirm Password</label>
+        <input
+          id="signup-confirm-password"
+          type="password"
+          formControlName="confirmPassword"
+          class="form-input"
+          [class.error]="hasFieldError(signupForm, 'confirmPassword') || hasPasswordMismatch"
+          placeholder="Confirm your password"
+          autocomplete="new-password">
+        <div class="field-error" *ngIf="hasFieldError(signupForm, 'confirmPassword')">
+          {{ getFieldError(signupForm, 'confirmPassword') }}
+        </div>
+        <div class="field-error" *ngIf="hasPasswordMismatch">
+          Passwords do not match
+        </div>
+      </div>
+
+      <button 
+        type="submit" 
+        class="submit-button"
+        [disabled]="isLoading || signupForm.invalid">
+        <span *ngIf="!isLoading">🔐 Sign Up</span>
+        <span *ngIf="isLoading" class="loading">
+          <span class="spinner"></span>
+          Creating account...
+        </span>
+      </button>
+    </form>
+
+    <!-- Toggle Mode Link -->
+    <div class="toggle-mode">
+      <p *ngIf="isLoginMode">
+        Don't have an account? 
+        <button type="button" class="link-button" (click)="toggleMode()" [disabled]="isLoading">
+          Sign up here
+        </button>
+      </p>
+      <p *ngIf="!isLoginMode">
+        Already have an account? 
+        <button type="button" class="link-button" (click)="toggleMode()" [disabled]="isLoading">
+          Login here
+        </button>
+      </p>
+    </div>
+  </div>
+</div>
