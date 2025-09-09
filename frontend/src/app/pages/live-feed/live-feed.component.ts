@@ -70,9 +70,10 @@ export class LiveFeedComponent implements OnInit, OnDestroy {
     // Use viewer updates from real-time analytics instead of dashboard updates
     this.webSocketSubscription = this.webSocketService.viewerUpdates$.subscribe(
       (update) => {
-        if (update && update.type === 'concurrent_viewers') {
+        if (update && update.type === 'total_viewers') {
           // Sum up all concurrent viewers across films for total count
           this.currentViewers = update.count;
+          console.log('[LIVE-FEED] Total viewers updated:', this.currentViewers);
         }
       }
     );

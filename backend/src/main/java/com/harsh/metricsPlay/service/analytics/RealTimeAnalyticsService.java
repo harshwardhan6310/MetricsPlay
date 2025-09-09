@@ -73,5 +73,21 @@ public class RealTimeAnalyticsService {
         
         // Also broadcast to video player concurrent viewers 
         messagingTemplate.convertAndSend("/topic/real-time-analytics", update);
+
+        broadcastTotalViewers();
+    }
+
+    private void broadcastTotalViewers() {
+        Long totalViewers = 0L;
+        for(int i=1 ; i<=5 ; i++){ // Assuming film IDs range from 1 to 5 for now :D
+            totalViewers += getConcurrentViewers((long)i);
+        }
+        Map<String, Object> update = new HashMap<>();
+        update.put("type", "total_viewers");
+        update.put("count", totalViewers);
+        update.put("timestamp", LocalDateTime.now());
+
+        // Broadcast total viewers to dashboard
+        messagingTemplate.convertAndSend("/topic/real-time-analytics", update);
     }
 }

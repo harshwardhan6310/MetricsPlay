@@ -18,7 +18,7 @@ export interface LiveEvent {
 }
 
 export interface ViewerUpdate {
-  type: 'concurrent_viewers';
+  type: 'concurrent_viewers' | 'total_viewers';
   filmId: number;
   count: number;
   timestamp: string;
@@ -107,6 +107,14 @@ export class WebSocketService {
           const viewerUpdate: ViewerUpdate = {
             type: 'concurrent_viewers',
             filmId: update.filmId,
+            count: update.count,
+            timestamp: update.timestamp
+          };
+          this.viewerUpdatesSubject.next(viewerUpdate);
+        } else if (update.type === 'total_viewers') {
+          const viewerUpdate: ViewerUpdate = {
+            type: 'total_viewers',
+            filmId: 0, 
             count: update.count,
             timestamp: update.timestamp
           };
