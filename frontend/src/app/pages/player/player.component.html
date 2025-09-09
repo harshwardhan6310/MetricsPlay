@@ -16,18 +16,20 @@
   <div *ngIf="!loading && !error && film" class="video-player-section">
     <!-- Back Button -->
     <div class="player-header">
-      <button mat-icon-button (click)="goBack()" class="back-button">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
-      <div class="film-title-section">
-        <h2>{{ film.title }}</h2>
-        <div class="film-info">
-          <mat-chip [color]="getGenreColor(film.genre)" selected>{{ film.genre }}</mat-chip>
-          <mat-chip *ngIf="currentViewers > 0" color="accent" selected>
-            <mat-icon>visibility</mat-icon>
-            {{ currentViewers }} watching
-          </mat-chip>
+      <div class="header-content">
+        <button mat-icon-button (click)="goBack()" class="back-button">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="film-title-section">
+          <h2>{{ film.title }}</h2>
+          <div class="film-info">
+            <mat-chip [color]="getGenreColor(film.genre)" selected>{{ film.genre }}</mat-chip>
+          </div>
         </div>
+      </div>
+      <!-- Live Viewers - Header Right -->
+      <div class="header-live-viewers">
+        <app-live-viewers [filmId]="film.id"></app-live-viewers>
       </div>
     </div>
     

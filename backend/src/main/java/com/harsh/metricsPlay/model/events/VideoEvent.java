@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 
 @Data
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class VideoEvent {
@@ -31,16 +33,4 @@ public class VideoEvent {
     
     @JsonProperty("currentTime")
     private Double currentTime;
-    
-    @JsonProperty("duration")
-    private Double duration;
-    
-    @JsonProperty("progress")
-    private Double progress;
-    
-    @JsonProperty("userAgent")
-    private String userAgent;
-    
-    @JsonProperty("ipAddress")
-    private String ipAddress;
 }

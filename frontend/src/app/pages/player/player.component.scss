@@ -44,7 +44,8 @@
 // Player Header
 .player-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
   color: #fff;
@@ -58,10 +59,18 @@
     }
   }
   
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+  }
+  
   .film-title-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1;
     
     h2 {
       margin: 0;
@@ -86,6 +95,12 @@
         }
       }
     }
+  }
+  
+  .header-live-viewers {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
   }
 }
 

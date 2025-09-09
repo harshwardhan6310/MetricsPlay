@@ -1,0 +1,86 @@
+<div class="live-feed-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="title-section">
+      <h1>🔴 Live Feed</h1>
+      <p>Real-time user activity and video events</p>
+    </div>
+    
+    <div class="status-section">
+      <div class="connection-status" [ngClass]="isConnected ? 'connected' : 'disconnected'">
+        <mat-icon>{{ isConnected ? 'wifi' : 'wifi_off' }}</mat-icon>
+        <span>{{ isConnected ? 'Live' : 'Offline' }}</span>
+      </div>
+      
+      <div class="viewer-count" *ngIf="currentViewers > 0">
+        <mat-icon>visibility</mat-icon>
+        <span>{{ currentViewers }} watching</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Activity Feed -->
+  <div class="activity-feed">
+    <div class="feed-header">
+      <h2>Recent Activity</h2>
+      <mat-chip color="accent" selected *ngIf="liveActivities.length > 0">
+        {{ liveActivities.length }} events
+      </mat-chip>
+    </div>
+
+    <!-- Activity List -->
+    <div class="activity-list" *ngIf="liveActivities.length > 0; else noActivity">
+      <mat-card 
+        *ngFor="let activity of liveActivities; trackBy: trackByActivityId" 
+        class="activity-card"
+        [ngClass]="'activity-' + activity.action">
+        
+        <mat-card-content>
+          <div class="activity-content">
+            <!-- Action Icon -->
+            <div class="activity-icon">
+              <mat-icon [color]="getActionColor(activity.action)">
+                {{ getActionIcon(activity.action) }}
+              </mat-icon>
+            </div>
+
+            <!-- Activity Details -->
+            <div class="activity-details">
+              <div class="activity-primary">
+                <span class="username">{{ activity.username }}</span>
+                <span class="action-text">{{ getActionText(activity.action) }}</span>
+                <span class="film-title">{{ activity.filmTitle }}</span>
+              </div>
+              
+              <div class="activity-secondary">
+                <span class="timestamp">{{ getTimeAgo(activity.timestamp) }}</span>
+                <span class="current-time" *ngIf="activity.currentTime">
+                  at {{ activity.currentTime }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Activity Badge -->
+            <div class="activity-badge">
+              <mat-chip 
+                [color]="getActionColor(activity.action)" 
+                selected
+                size="small">
+                {{ activity.action }}
+              </mat-chip>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- No Activity State -->
+    <ng-template #noActivity>
+      <div class="no-activity">
+        <mat-icon>hourglass_empty</mat-icon>
+        <h3>Waiting for activity...</h3>
+        <p>User interactions will appear here in real-time</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

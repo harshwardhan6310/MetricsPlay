@@ -15,16 +15,6 @@ export interface VideoEvent {
   sessionId: string;
 }
 
-export interface FilmMetrics {
-  filmId: string;
-  title: string;
-  currentViewers: number;
-  totalViews: number;
-  averageWatchTime: number;
-  completionRate: number;
-  lastUpdated: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -167,46 +157,6 @@ export class EventTrackingService {
     );
   }
 
-  // Analytics Data Fetching
-  getFilmMetrics(filmId: string): Observable<FilmMetrics> {
-    console.log(`[HTTP] Fetching film metrics for film ${filmId}`);
-    return this.http.get<FilmMetrics>(`${this.API_BASE}/analytics/film/${filmId}/metrics`).pipe(
-      tap(metrics => {
-        console.log(`[HTTP] Film metrics received for film ${filmId}:`, metrics);
-      }),
-      catchError(error => {
-        console.error(`[HTTP] Failed to fetch film metrics for film ${filmId}:`, error);
-        throw error;
-      })
-    );
-  }
-
-  getCurrentViewers(filmId: string): Observable<number> {
-    console.log(`[HTTP] Fetching current viewers for film ${filmId}`);
-    return this.http.get<number>(`${this.API_BASE}/analytics/film/${filmId}/concurrent-viewers`).pipe(
-      tap(count => {
-        console.log(`[HTTP] Current viewers count for film ${filmId}: ${count}`);
-      }),
-      catchError(error => {
-        console.error(`[HTTP] Failed to fetch current viewers for film ${filmId}:`, error);
-        throw error;
-      })
-    );
-  }
-
-  getDashboardMetrics(): Observable<any> {
-    console.log(`[HTTP] Fetching dashboard metrics`);
-    return this.http.get(`${this.API_BASE}/analytics/dashboard`).pipe(
-      tap(metrics => {
-        console.log(`[HTTP] Dashboard metrics received:`, metrics);
-      }),
-      catchError(error => {
-        console.error(`[HTTP] Failed to fetch dashboard metrics:`, error);
-        throw error;
-      })
-    );
-  }
-
   private generateSessionId(): string {
     return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
@@ -215,11 +165,11 @@ export class EventTrackingService {
     // Only return user ID if user is authenticated
     const currentUser = this.authService.getCurrentUser();
     if (currentUser && currentUser.username) {
-      console.log(`👤 [EVENT-TRACKING] Using authenticated user: ${currentUser.username}`);
+      console.log(`[EVENT-TRACKING] Using authenticated user: ${currentUser.username}`);
       return currentUser.username;
     }
     
-    console.log(`🔄 [EVENT-TRACKING] No authenticated user, tracking disabled`);
+    console.log(`[EVENT-TRACKING] No authenticated user, tracking disabled`);
     return null;
   }
 
@@ -239,7 +189,7 @@ export class EventTrackingService {
     const oldUserId = this.userId;
     this.userId = this.getCurrentUserId();
     if (oldUserId !== this.userId) {
-      console.log(`🔄 [EVENT-TRACKING] User ID updated from ${oldUserId || 'null'} to ${this.userId || 'null'}`);
+      console.log(`[EVENT-TRACKING] User ID updated from ${oldUserId || 'null'} to ${this.userId || 'null'}`);
     }
   }
 }

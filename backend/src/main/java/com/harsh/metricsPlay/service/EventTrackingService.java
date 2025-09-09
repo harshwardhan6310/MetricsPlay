@@ -1,19 +1,20 @@
 package com.harsh.metricsPlay.service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.harsh.metricsPlay.model.dto.VideoEventDTO;
 import com.harsh.metricsPlay.model.entity.VideoEvent;
 import com.harsh.metricsPlay.model.entity.ViewingSession;
 import com.harsh.metricsPlay.repository.VideoEventRepository;
 import com.harsh.metricsPlay.repository.ViewingSessionRepository;
 import com.harsh.metricsPlay.service.kafka.EventProducerService;
-import com.harsh.metricsPlay.service.analytics.RealTimeAnalyticsService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -22,16 +23,13 @@ public class EventTrackingService {
     private final VideoEventRepository eventRepository;
     private final ViewingSessionRepository sessionRepository;
     private final EventProducerService eventProducerService;
-    private final RealTimeAnalyticsService analyticsService;
     
     public EventTrackingService(VideoEventRepository eventRepository, 
                               ViewingSessionRepository sessionRepository,
-                              EventProducerService eventProducerService,
-                              RealTimeAnalyticsService analyticsService) {
+                              EventProducerService eventProducerService) {
         this.eventRepository = eventRepository;
         this.sessionRepository = sessionRepository;
         this.eventProducerService = eventProducerService;
-        this.analyticsService = analyticsService;
     }
     
     @Transactional
@@ -63,15 +61,7 @@ public class EventTrackingService {
             kafkaEvent.setEventType(eventDTO.getEventType());
             kafkaEvent.setTimestamp(LocalDateTime.now());
             kafkaEvent.setCurrentTime(eventDTO.getCurrentTime());
-            kafkaEvent.setDuration(eventDTO.getDuration());
-            kafkaEvent.setProgress(eventDTO.getDuration() > 0 ? (eventDTO.getCurrentTime() / eventDTO.getDuration()) * 100 : 0);
-            kafkaEvent.setUserAgent(eventDTO.getUserAgent());
-            kafkaEvent.setIpAddress(eventDTO.getIpAddress());
-            
-            // Send to Kafka for real-time processing
             eventProducerService.sendVideoEvent(kafkaEvent);
-            
-            // Update or create viewing session
             updateViewingSession(eventDTO);
             
         } catch (Exception e) {
@@ -86,7 +76,6 @@ public class EventTrackingService {
         if (existingSession.isPresent()) {
             session = existingSession.get();
         } else {
-            // Create new session
             session = ViewingSession.builder()
                 .sessionId(eventDTO.getSessionId())
                 .filmId(eventDTO.getFilmId())
@@ -97,7 +86,6 @@ public class EventTrackingService {
                 .build();
         }
         
-        // Update session based on event type
         switch (eventDTO.getEventType().toLowerCase()) {
             case "play":
                 if (session.getStartTime() == null) {
@@ -124,7 +112,6 @@ public class EventTrackingService {
                 
             case "progress":
                 session.setLastPosition(eventDTO.getCurrentTime());
-                // Update total watch time logic can be added here
                 break;
         }
         

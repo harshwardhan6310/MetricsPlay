@@ -1,0 +1,22 @@
+<div class="live-viewers-container">
+  <!-- Main viewer count display -->
+  <mat-chip-set class="viewer-chip-set">
+    <mat-chip class="viewer-chip" [class.pulsing]="isUpdating">
+      <mat-icon class="viewer-icon">visibility</mat-icon>
+      <span class="viewer-count">{{ viewerCount }}</span>
+      <span class="viewer-label">{{ viewerCount === 1 ? ' viewer' : ' viewers' }} watching</span>
+    </mat-chip>
+  </mat-chip-set>
+  
+  <!-- Live indicator -->
+  <div class="live-indicator" *ngIf="isConnected" title="Real-time data">
+    <div class="live-dot"></div>
+    <span class="live-text">LIVE</span>
+  </div>
+  
+  <!-- Connection status when disconnected -->
+  <div class="offline-indicator" *ngIf="!isConnected" title="Connection lost">
+    <mat-icon class="offline-icon">wifi_off</mat-icon>
+    <span class="offline-text">OFFLINE</span>
+  </div>
+</div>

@@ -29,7 +29,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.userSubscription = this.authService.currentUser$.subscribe(
       user => {
         this.currentUser = user;
-        console.log(`🔄 [NAVBAR] User state updated:`, user?.username || 'Not logged in');
+        console.log(`[NAVBAR] User state updated:`, user?.username || 'Not logged in');
       }
     );
   }
@@ -42,7 +42,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * Handle user logout
    */
   onLogout(): void {
-    console.log(`🚪 [NAVBAR] User logout initiated`);
+    console.log(`[NAVBAR] User logout initiated`);
     this.authService.logout();
     // Refresh event tracking user ID to use guest user
     this.eventTrackingService.refreshUserId();

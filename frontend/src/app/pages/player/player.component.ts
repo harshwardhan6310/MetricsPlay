@@ -8,9 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { FilmService, Film } from '../../services/film.service';
-import { EventTrackingService, FilmMetrics } from '../../services/event-tracking.service';
-import { WebSocketService, FilmUpdate } from '../../services/websocket.service';
+import { EventTrackingService } from '../../services/event-tracking.service';
+import { LiveViewersComponent } from '../../components/live-viewers/live-viewers.component';
 import { Subscription } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-player',
@@ -21,7 +22,8 @@ import { Subscription } from 'rxjs';
     MatButtonModule, 
     MatIconModule, 
     MatProgressBarModule,
-    MatChipsModule
+    MatChipsModule,
+    LiveViewersComponent
   ],
   templateUrl: './player.component.html',
   styleUrl: './player.component.scss'
@@ -34,15 +36,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
   loading = true;
   error: string | null = null;
   
-  // Real-time metrics
-  filmMetrics: FilmMetrics | null = null;
-  currentViewers = 0;
-  
   // Video tracking variables
   sessionId: string = '';
   private lastProgressTime = 0;
-  private progressInterval = 10; // Send progress every 10 seconds
-  private username = 'testuser1'; // This will come from auth later
+  private progressInterval = 15; // Send progress every 15 seconds
+  private username : string = 'testuser1';
   private filmUpdateSubscription: Subscription | null = null;
   
   // Video state
@@ -63,11 +61,12 @@ export class PlayerComponent implements OnInit, OnDestroy {
     private filmService: FilmService,
     private http: HttpClient,
     private eventTrackingService: EventTrackingService,
-    private webSocketService: WebSocketService
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     // Get film ID from route
+    this.username = this.authService.getCurrentUser()?.username || "testuser1"; 
     this.route.params.subscribe(params => {
       const id = params['id'];
       if (id) {
@@ -86,13 +85,17 @@ export class PlayerComponent implements OnInit, OnDestroy {
       clearTimeout(this.controlsTimeout);
     }
     
-    // Send final event if video was playing
-    if (this.isPlaying && this.videoElement && this.film) {
+    // Always send pause event when component is destroyed to remove from concurrent viewers
+    // This handles tab close, page refresh, navigation away, etc.
+    if (this.videoElement && this.film) {
       this.eventTrackingService.trackVideoPause(
         this.film.id.toString(),
         this.currentTime,
         this.duration
-      ).subscribe();
+      ).subscribe({
+        next: () => console.log('Cleanup: Removed viewer session on component destroy'),
+        error: (err) => console.error('Failed to remove viewer session:', err)
+      });
     }
 
     // Unsubscribe from film updates
@@ -109,7 +112,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
         this.film = film;
         this.loading = false;
         this.initializePlayer();
-        this.setupRealtimeTracking();
       },
       error: (error) => {
         console.error('Error loading film:', error);
@@ -131,42 +133,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
-  setupRealtimeTracking() {
-    if (!this.film) return;
-
-    // For now, use fallback tracking until WebSocket is properly configured
-    console.log('Setting up tracking with fallback data for film:', this.film.title);
-    this.currentViewers = Math.floor(Math.random() * 10) + 1;
-
-    // Try WebSocket connection but don't block if it fails
-    this.webSocketService.connectionStatus$.subscribe({
-      next: (connected) => {
-        if (connected) {
-          console.log('WebSocket connected, could enable real-time tracking');
-          // For now, just log that we could enable it
-          // TODO: Enable real-time tracking when WebSocket backend is ready
-        } else {
-          console.log('WebSocket not connected, using fallback data');
-        }
-      },
-      error: (error) => {
-        console.warn('WebSocket connection status error:', error);
-      }
-    });
-
-    // Load initial film metrics (this should work regardless of WebSocket)
-    this.eventTrackingService.getFilmMetrics(this.film.id.toString())
-      .subscribe({
-        next: (metrics) => {
-          this.filmMetrics = metrics;
-          this.currentViewers = metrics.currentViewers;
-        },
-        error: (error) => {
-          console.error('Error loading film metrics:', error);
-        }
-      });
-  }
-
   setupVideoEventListeners() {
     if (!this.videoElement) return;
     
@@ -174,7 +140,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Play event
     video.addEventListener('play', () => {
-      console.log(`▶️ Play event - Film ${this.filmId}`);
+      console.log(`Play event - Film ${this.filmId}`);
       this.isPlaying = true;
       if (this.film) {
         this.eventTrackingService.trackVideoPlay(
@@ -189,7 +155,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Pause event
     video.addEventListener('pause', () => {
-      console.log(`⏸️ Pause event - Film ${this.filmId} at ${video.currentTime}s`);
+      console.log(`Pause event - Film ${this.filmId} at ${video.currentTime}s`);
       this.isPlaying = false;
       if (this.film) {
         this.eventTrackingService.trackVideoPause(
@@ -208,7 +174,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Seek event
     video.addEventListener('seeked', () => {
-      console.log(`⏩ Seek event - Film ${this.filmId} to ${video.currentTime}s`);
+      console.log(`Seek event - Film ${this.filmId} to ${video.currentTime}s`);
       if (this.film) {
         this.eventTrackingService.trackVideoSeek(
           this.film.id.toString(),
@@ -220,7 +186,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Video ended
     video.addEventListener('ended', () => {
-      console.log(`🏁 Ended event - Film ${this.filmId}`);
+      console.log(`Ended event - Film ${this.filmId}`);
       this.isPlaying = false;
       if (this.film) {
         this.eventTrackingService.trackVideoEnded(
@@ -239,7 +205,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
       
       // Send progress events periodically
       if (this.currentTime - this.lastProgressTime >= this.progressInterval) {
-        console.log(`📊 Progress event - Film ${this.filmId} at ${this.currentTime}s`);
+        console.log(`Progress event - Film ${this.filmId} at ${this.currentTime}s`);
         if (this.film) {
           this.eventTrackingService.trackVideoProgress(
             this.film.id.toString(),
@@ -253,7 +219,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Video loaded
     video.addEventListener('loadedmetadata', () => {
-      console.log(`📂 Loaded event - Film ${this.filmId}, Duration: ${video.duration}s`);
+      console.log(`Loaded event - Film ${this.filmId}, Duration: ${video.duration}s`);
       this.duration = video.duration;
     });
 
@@ -278,10 +244,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     this.http.post('/api/events/video', event, { responseType: 'text' }).subscribe({
       next: (response) => {
-        console.log(`✅ Event tracked: ${eventType} for Film ${this.film?.id} at ${event.currentTime}s`);
+        console.log(`Event tracked: ${eventType} for Film ${this.film?.id} at ${event.currentTime}s`);
       },
       error: (error) => {
-        console.error('❌ Error sending event:', error);
+        console.error('Error sending event:', error);
       }
     });
   }
