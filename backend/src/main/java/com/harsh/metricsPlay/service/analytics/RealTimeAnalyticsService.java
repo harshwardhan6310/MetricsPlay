@@ -1,6 +1,7 @@
 package com.harsh.metricsPlay.service.analytics;
 
-import com.harsh.metricsPlay.model.events.VideoEvent;
+import com.harsh.metricsPlay.model.events.VideoEventDTO;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,7 +22,7 @@ public class RealTimeAnalyticsService {
 
     private static final String CONCURRENT_VIEWERS_KEY = "concurrent_viewers";
 
-    public void handlePlayEvent(VideoEvent event) {
+    public void handlePlayEvent(VideoEventDTO event) {
         log.info("[VIEWERS] User {} started watching film {}", event.getUserId(), event.getFilmId());
         String viewersKey = CONCURRENT_VIEWERS_KEY + ":" + event.getFilmId();
         redisTemplate.opsForSet().add(viewersKey, event.getUserId());
@@ -30,7 +31,7 @@ public class RealTimeAnalyticsService {
         log.info("[VIEWERS] Added user {} to viewers of film {}", event.getUserId(), event.getFilmId());
     }
 
-    public void handleStopEvent(VideoEvent event) {
+    public void handleStopEvent(VideoEventDTO event) {
         log.info("[VIEWERS] User {} stopped watching film {}", event.getUserId(), event.getFilmId());
         String viewersKey = CONCURRENT_VIEWERS_KEY + ":" + event.getFilmId();
         redisTemplate.opsForSet().remove(viewersKey, event.getUserId());
@@ -38,7 +39,7 @@ public class RealTimeAnalyticsService {
         log.info("[VIEWERS] Removed user {} from viewers of film {}", event.getUserId(), event.getFilmId());
     }
 
-    public void handleProgressEvent(VideoEvent event) {
+    public void handleProgressEvent(VideoEventDTO event) {
         log.info("[VIEWERS] User {} watching film {}", event.getUserId(), event.getFilmId());
         String viewersKey = CONCURRENT_VIEWERS_KEY + ":" + event.getFilmId();
         redisTemplate.opsForSet().add(viewersKey, event.getUserId());
@@ -47,11 +48,11 @@ public class RealTimeAnalyticsService {
         log.info("[VIEWERS] User {} viewing activity token refreshed for film {}", event.getUserId(), event.getFilmId());
     }
 
-    public void handlePauseEvent(VideoEvent event) {
+    public void handlePauseEvent(VideoEventDTO event) {
         handleStopEvent(event);
     }
 
-    public void handleEndedEvent(VideoEvent event) {
+    public void handleEndedEvent(VideoEventDTO event) {
         handleStopEvent(event);
     }
 

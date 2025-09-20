@@ -8,7 +8,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import com.harsh.metricsPlay.config.KafkaConfig;
-import com.harsh.metricsPlay.model.events.VideoEvent;
+import com.harsh.metricsPlay.model.events.VideoEventDTO;
 import com.harsh.metricsPlay.service.analytics.RealTimeAnalyticsService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class EventConsumerService {
     private final RealTimeAnalyticsService analyticsService;
 
     @KafkaListener(topics = KafkaConfig.VIDEO_EVENTS_TOPIC, groupId = "video-events-processor")
-    public void processVideoEvent(@Payload VideoEvent event,
+    public void processVideoEvent(@Payload VideoEventDTO event,
                                 @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
                                 @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
                                 @Header(KafkaHeaders.OFFSET) long offset,

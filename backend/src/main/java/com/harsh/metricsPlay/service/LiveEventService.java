@@ -5,7 +5,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.harsh.metricsPlay.config.KafkaConfig;
-import com.harsh.metricsPlay.model.events.VideoEvent;
+import com.harsh.metricsPlay.model.events.VideoEventDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ public class LiveEventService {
     }
 
     @KafkaListener(topics = KafkaConfig.VIDEO_EVENTS_TOPIC, groupId = "live-feed-group")
-    public void consumeVideoEvents(VideoEvent event) {
+    public void consumeVideoEvents(VideoEventDTO event) {
         try {
             log.info("[LIVE-FEED] Received video event: {} for film {} by user {}", 
                     event.getEventType(), event.getFilmId(), event.getUserId());

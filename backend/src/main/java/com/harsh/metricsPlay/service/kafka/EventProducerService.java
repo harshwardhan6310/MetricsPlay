@@ -1,7 +1,8 @@
 package com.harsh.metricsPlay.service.kafka;
 
 import com.harsh.metricsPlay.config.KafkaConfig;
-import com.harsh.metricsPlay.model.events.VideoEvent;
+import com.harsh.metricsPlay.model.events.VideoEventDTO;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -17,7 +18,7 @@ public class EventProducerService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sendVideoEvent(VideoEvent event) {
+    public void sendVideoEvent(VideoEventDTO event) {
         try {
             log.info("[KAFKA-PRODUCER] Preparing to send {} event to Kafka topic: {}", 
                 event.getEventType(), KafkaConfig.VIDEO_EVENTS_TOPIC);
@@ -45,7 +46,7 @@ public class EventProducerService {
         }
     }
 
-    private String generateVideoEventKey(VideoEvent event) {
+    private String generateVideoEventKey(VideoEventDTO event) {
         return String.format("%s_%s_%s", event.getUserId(), event.getFilmId(), event.getSessionId());
     }
 }

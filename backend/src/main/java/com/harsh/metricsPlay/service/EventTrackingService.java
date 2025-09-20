@@ -1,15 +1,15 @@
 package com.harsh.metricsPlay.service;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.harsh.metricsPlay.model.dto.VideoEventDTO;
 import com.harsh.metricsPlay.model.entity.VideoEvent;
 import com.harsh.metricsPlay.model.entity.ViewingSession;
+import com.harsh.metricsPlay.model.events.VideoEventDTO;
 import com.harsh.metricsPlay.repository.VideoEventRepository;
 import com.harsh.metricsPlay.repository.ViewingSessionRepository;
 import com.harsh.metricsPlay.service.kafka.EventProducerService;
@@ -26,96 +26,89 @@ public class EventTrackingService {
     
     public EventTrackingService(VideoEventRepository eventRepository, 
                               ViewingSessionRepository sessionRepository,
-                              EventProducerService eventProducerService) {
+                            EventProducerService eventProducerService) {
         this.eventRepository = eventRepository;
         this.sessionRepository = sessionRepository;
         this.eventProducerService = eventProducerService;
     }
-    
+
     @Transactional
-    public void trackVideoEvent(VideoEventDTO eventDTO) {
+    public void trackVideoEvent(VideoEventDTO incoming) {
         try {
-            // Save the event to database
-            VideoEvent event = VideoEvent.builder()
-                .eventType(eventDTO.getEventType())
-                .filmId(eventDTO.getFilmId())
-                .username(eventDTO.getUsername())
-                .currentTime(eventDTO.getCurrentTime())
-                .duration(eventDTO.getDuration())
-                .sessionId(eventDTO.getSessionId())
-                .timestamp(LocalDateTime.now())
-                .userAgent(eventDTO.getUserAgent())
-                .ipAddress(eventDTO.getIpAddress())
+            if (incoming == null) {
+                log.warn("trackVideoEvent called with null event");
+                return;
+            }
+
+            // Build JPA entity from incoming event
+            VideoEvent entity = VideoEvent.builder()
+                .eventType(incoming.getEventType())
+                .filmId(incoming.getFilmId())
+                .username(incoming.getUserId())
+                .currentTime(incoming.getCurrentTime())
+                .sessionId(incoming.getSessionId())
+                .timestamp(incoming.getTimestamp() != null ? incoming.getTimestamp() : LocalDateTime.now())
                 .build();
-            
-            eventRepository.save(event);
-            log.info("Saved video event: {} for film {} at position {}", 
-                eventDTO.getEventType(), eventDTO.getFilmId(), eventDTO.getCurrentTime());
-            
-            // Create Kafka video event
-            com.harsh.metricsPlay.model.events.VideoEvent kafkaEvent = new com.harsh.metricsPlay.model.events.VideoEvent();
-            kafkaEvent.setEventId(UUID.randomUUID().toString());
-            kafkaEvent.setSessionId(eventDTO.getSessionId());
-            kafkaEvent.setUserId(eventDTO.getUsername());
-            kafkaEvent.setFilmId(eventDTO.getFilmId());
-            kafkaEvent.setEventType(eventDTO.getEventType());
-            kafkaEvent.setTimestamp(LocalDateTime.now());
-            kafkaEvent.setCurrentTime(eventDTO.getCurrentTime());
-            eventProducerService.sendVideoEvent(kafkaEvent);
-            updateViewingSession(eventDTO);
-            
+
+            eventRepository.save(entity);
+            log.info("[EVENT-TRACKING] Saved event type={} filmId={} user={} t={}",
+                entity.getEventType(), entity.getFilmId(), entity.getUsername(), entity.getCurrentTime());
+
+            // Update session state
+            updateViewingSession(incoming);
         } catch (Exception e) {
-            log.error("Error tracking video event: {}", e.getMessage(), e);
+            log.error("[EVENT-TRACKING] Error persisting event: {}", e.getMessage(), e);
         }
     }
-    
-    private void updateViewingSession(VideoEventDTO eventDTO) {
-        Optional<ViewingSession> existingSession = sessionRepository.findById(eventDTO.getSessionId());
-        ViewingSession session;
-        
-        if (existingSession.isPresent()) {
-            session = existingSession.get();
-        } else {
-            session = ViewingSession.builder()
-                .sessionId(eventDTO.getSessionId())
-                .filmId(eventDTO.getFilmId())
-                .username(eventDTO.getUsername())
+
+    // Update or create viewing session based on the incoming event
+    private void updateViewingSession(VideoEventDTO incoming) {
+        try {
+            Optional<ViewingSession> existing = sessionRepository.findById(incoming.getSessionId());
+            ViewingSession session = existing.orElseGet(() -> ViewingSession.builder()
+                .sessionId(incoming.getSessionId())
+                .filmId(incoming.getFilmId())
+                .username(incoming.getUserId())
                 .startTime(LocalDateTime.now())
                 .totalWatchTime(0.0)
                 .completed(false)
-                .build();
+                .lastPosition(0.0)
+                .build()
+            );
+
+            String type = incoming.getEventType() != null ? incoming.getEventType().toLowerCase(Locale.ROOT) : "";
+            Double position = incoming.getCurrentTime();
+
+            switch (type) {
+                case "play":
+                    if (session.getStartTime() == null) {
+                        session.setStartTime(LocalDateTime.now());
+                    }
+                    break;
+                case "pause":
+                case "seek":
+                case "progress":
+                    if (position != null) {
+                        session.setLastPosition(position);
+                    }
+                    break;
+                case "ended":
+                    session.setCompleted(true);
+                    session.setEndTime(LocalDateTime.now());
+                    if (position != null) {
+                        session.setLastPosition(position);
+                    }
+                    break;
+                default:
+                    if (position != null) {
+                        session.setLastPosition(position);
+                    }
+            }
+            sessionRepository.save(session);
+            log.debug("[EVENT-TRACKING] Updated session {} for user={} film={} pos={}",
+                session.getSessionId(), session.getUsername(), session.getFilmId(), session.getLastPosition());
+        } catch (Exception e) {
+            log.error("[EVENT-TRACKING] Error updating session: {}", e.getMessage(), e);
         }
-        
-        switch (eventDTO.getEventType().toLowerCase()) {
-            case "play":
-                if (session.getStartTime() == null) {
-                    session.setStartTime(LocalDateTime.now());
-                }
-                break;
-                
-            case "pause":
-                session.setLastPosition(eventDTO.getCurrentTime());
-                break;
-                
-            case "ended":
-                session.setCompleted(true);
-                session.setEndTime(LocalDateTime.now());
-                session.setLastPosition(eventDTO.getCurrentTime());
-                if (eventDTO.getDuration() != null && eventDTO.getDuration() > 0) {
-                    session.setRetentionRate((eventDTO.getCurrentTime() / eventDTO.getDuration()) * 100);
-                }
-                break;
-                
-            case "seek":
-                session.setLastPosition(eventDTO.getCurrentTime());
-                break;
-                
-            case "progress":
-                session.setLastPosition(eventDTO.getCurrentTime());
-                break;
-        }
-        
-        sessionRepository.save(session);
-        log.debug("Updated viewing session: {}", session.getSessionId());
     }
 }

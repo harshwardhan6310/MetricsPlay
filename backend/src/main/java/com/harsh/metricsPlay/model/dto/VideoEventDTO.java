@@ -1,21 +1,35 @@
-package com.harsh.metricsPlay.model.dto;
+package com.harsh.metricsPlay.model.events;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import java.time.LocalDateTime;
 
 @Data
-@Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class VideoEventDTO {
-    private String eventType;
-    private Long filmId;
-    private String username;
-    private Double currentTime;
-    private Double duration;
+    @JsonProperty("eventId")
+    private String eventId;
+    
+    @JsonProperty("sessionId")
     private String sessionId;
-    private String userAgent;
-    private String ipAddress;
+    
+    @JsonProperty("userId")
+    private String userId;
+    
+    @JsonProperty("filmId")
+    private Long filmId;
+    
+    @JsonProperty("eventType")
+    private String eventType; // play, pause, seek, progress, ended, loaded
+    
+    @JsonProperty("timestamp")
+    private LocalDateTime timestamp;
+    
+    @JsonProperty("currentTime")
+    private Double currentTime;
 }

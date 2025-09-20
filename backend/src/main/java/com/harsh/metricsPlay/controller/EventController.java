@@ -1,6 +1,7 @@
 package com.harsh.metricsPlay.controller;
 
-import com.harsh.metricsPlay.model.events.VideoEvent;
+import com.harsh.metricsPlay.model.events.VideoEventDTO;
+import com.harsh.metricsPlay.service.EventTrackingService;
 import com.harsh.metricsPlay.service.kafka.EventProducerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +14,15 @@ import org.springframework.web.bind.annotation.*;
 public class EventController {
     
     private final EventProducerService eventProducerService;
+    private final EventTrackingService eventTrackingService;
     
-    public EventController(EventProducerService eventProducerService) {
+    public EventController(EventProducerService eventProducerService, EventTrackingService eventTrackingService) {
         this.eventProducerService = eventProducerService;
+        this.eventTrackingService = eventTrackingService;
     }
     
     @PostMapping("/video")
-    public ResponseEntity<String> trackVideoEvent(@RequestBody VideoEvent event, HttpServletRequest request) {
+    public ResponseEntity<String> trackVideoEvent(@RequestBody VideoEventDTO event, HttpServletRequest request) {
         try {
             log.info("[API-GATEWAY] Received HTTP POST /api/events/video from IP: {}", 
                 request.getRemoteAddr());
@@ -28,6 +31,7 @@ public class EventController {
             event.setTimestamp(java.time.LocalDateTime.now());
             log.info("[API-GATEWAY] Forwarding event to Kafka producer service");
             eventProducerService.sendVideoEvent(event);
+            eventTrackingService.trackVideoEvent(event);
             log.info("[API-GATEWAY] Event successfully forwarded to Kafka pipeline");
             return ResponseEntity.ok("Event tracked successfully");
             
