@@ -129,9 +129,35 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Setup video event listeners after view init
     setTimeout(() => {
+      this.loadVideoWithAuth();
       this.setupVideoEventListeners();
     }, 100);
   }
+
+  private loadVideoWithAuth() {
+  if (!this.film) return;
+  
+  console.log('[VIDEO] Loading video with auth for film:', this.film.id);
+  
+  // Use HttpClient to fetch video with auth headers
+  this.http.get(`/api/films/${this.film.id}/stream`, { 
+    responseType: 'blob',
+    observe: 'response'
+  }).subscribe({
+    next: (response) => {
+      console.log('[VIDEO] Video blob received, setting video source');
+      if (response.body && this.videoElement) {
+        const videoUrl = URL.createObjectURL(response.body);
+        this.videoElement.nativeElement.src = videoUrl;
+        console.log('[VIDEO] Video source set successfully');
+      }
+    },
+    error: (error) => {
+      console.error('[VIDEO] Error loading video stream:', error);
+      this.error = 'Failed to load video stream';
+    }
+  });
+}
 
   setupVideoEventListeners() {
     if (!this.videoElement) return;

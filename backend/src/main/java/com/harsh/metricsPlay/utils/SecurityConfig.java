@@ -26,14 +26,15 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                "/auth/**",
+                "/api/auth/**",
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 "/swagger-ui.html",
                 "/swagger-resources/**",
-                "/webjars/**"
-                ).permitAll() // allow unauthenticated access to login/signup and Swagger UI
-                .anyRequest().authenticated()  
+                "/ws/**"
+                ).permitAll() 
+                .anyRequest().authenticated()
+                // .anyRequest().permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
