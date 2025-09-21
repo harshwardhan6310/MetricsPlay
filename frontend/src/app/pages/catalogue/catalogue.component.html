@@ -22,7 +22,11 @@
     <mat-card class="film-card" *ngFor="let film of films">
       <!-- Film Thumbnail/Preview -->
       <div class="film-thumbnail">
-        <mat-icon class="preview-icon">movie</mat-icon>
+        <img
+          [src]="getThumbnailUrl(film)"
+          alt="{{ film.title }} thumbnail"
+          (error)="onThumbnailError($event, film)"
+        />
         <div class="play-overlay" (click)="playFilm(film)">
           <mat-icon class="play-icon">play_circle_filled</mat-icon>
         </div>
