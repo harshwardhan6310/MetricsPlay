@@ -74,20 +74,8 @@ export class CatalogueComponent implements OnInit {
     return colors[genre] || 'primary';
   }
 
-  // Build thumbnail URL for a film
   getThumbnailUrl(film: Film): string {
     const name = this.thumbMap[film.id] || String(film.id);
-    return `${this.thumbBase}/${name}.jpg`;
-  }
-
-  // Fallback to .png, then to a generic default
-  onThumbnailError(ev: Event, film: Film) {
-    const img = ev.target as HTMLImageElement;
-    const name = this.thumbMap[film.id] || String(film.id);
-    if (img.src.endsWith('.jpg')) {
-      img.src = `${this.thumbBase}/${name}.png`;
-    } else if (!img.src.endsWith('/default.jpg')) {
-      img.src = `${this.thumbBase}/default.jpg`;
-    }
+    return `${this.thumbBase}/${name}.png`;
   }
 }

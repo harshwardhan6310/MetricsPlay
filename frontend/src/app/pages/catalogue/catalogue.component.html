@@ -25,7 +25,6 @@
         <img
           [src]="getThumbnailUrl(film)"
           alt="{{ film.title }} thumbnail"
-          (error)="onThumbnailError($event, film)"
         />
         <div class="play-overlay" (click)="playFilm(film)">
           <mat-icon class="play-icon">play_circle_filled</mat-icon>
