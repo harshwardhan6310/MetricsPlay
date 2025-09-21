@@ -128,6 +128,22 @@ Redis is used for fast, real-time state storage, primarily to track concurrent v
   - Member stored: `userId` (one presence per user per film)
   - TTL: 5 minutes; refreshed on activity
 
+
+## WebSocket (Real-time updates)
+
+The backend exposes a STOMP-over-SockJS endpoint at `/ws` and a simple broker for topic broadcasts (configured in `WebSocketConfig`). Used it to receive live playback events and viewer analytics pushed from the server in real time.
+
+- Endpoint: `/ws` (SockJS)
+- Broker destination prefix: `/topic` (simple broker enabled)
+- Common topics:
+  - `/topic/live-events` — real-time player events forwarded from Kafka (play/pause/seek/progress/ended)
+  - `/topic/real-time-analytics` — aggregated analytics (concurrent viewers, totals)
+
+Client subscriptions
+- Subscribe to events important to your UI, for example:
+  - Live feed: `stompClient.subscribe('/topic/live-events', handler)`
+  - Viewer counts: `stompClient.subscribe('/topic/real-time-analytics', handler)`
+
 ## Environment Variables (reference)
 See `.env` in the repo root for all values used by `docker-compose.yml`, including:
 - Database: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
