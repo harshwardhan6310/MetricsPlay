@@ -150,6 +150,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
         const videoUrl = URL.createObjectURL(response.body);
         this.videoElement.nativeElement.src = videoUrl;
         console.log('[VIDEO] Video source set successfully');
+        this.currentTime = 0;
+        this.duration = 0;
+        this.progress = 0;
+        this.lastProgressTime = 0;
       }
     },
     error: (error) => {
@@ -173,6 +177,12 @@ export class PlayerComponent implements OnInit, OnDestroy {
           this.film.id.toString(),
           this.currentTime,
           this.duration
+        ).subscribe();
+        this.lastProgressTime = Math.max(0, Math.floor(video.currentTime));
+        this.eventTrackingService.trackVideoProgress(
+          this.film.id.toString(),
+          video.currentTime,
+          video.duration
         ).subscribe();
       }
       // Auto-hide controls when playing
@@ -208,6 +218,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
           this.duration
         ).subscribe();
       }
+      this.lastProgressTime = Math.floor(video.currentTime);
     });
     
     // Video ended
@@ -225,21 +236,27 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Progress tracking
     video.addEventListener('timeupdate', () => {
+      // Skip if not in a valid state to report progress
+      if (video.paused || video.seeking || isNaN(video.duration)) {
+        return;
+      }
+
       this.currentTime = video.currentTime;
       this.duration = video.duration;
       this.progress = this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0;
       
-      // Send progress events periodically
-      if (this.currentTime - this.lastProgressTime >= this.progressInterval) {
-        console.log(`Progress event - Film ${this.filmId} at ${this.currentTime}s`);
+      // Send progress events on fixed 15s buckets
+      if (video.currentTime - this.lastProgressTime >= this.progressInterval) {
+        console.log(`Progress event - Film ${this.filmId} at ${video.currentTime}s`);
         if (this.film) {
           this.eventTrackingService.trackVideoProgress(
             this.film.id.toString(),
-            this.currentTime,
-            this.duration
+            video.currentTime,
+            video.duration
           ).subscribe();
         }
-        this.lastProgressTime = this.currentTime;
+        // Align to the latest 15s bucket to avoid drift
+        this.lastProgressTime = Math.floor(video.currentTime / this.progressInterval) * this.progressInterval;
       }
     });
     
@@ -247,11 +264,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
     video.addEventListener('loadedmetadata', () => {
       console.log(`Loaded event - Film ${this.filmId}, Duration: ${video.duration}s`);
       this.duration = video.duration;
-    });
-
-    // Volume change - just update UI, no tracking needed
-    video.addEventListener('volumechange', () => {
-      this.volume = video.volume;
+      // Reset baseline on new metadata
+      this.lastProgressTime = 0;
     });
   }
 
