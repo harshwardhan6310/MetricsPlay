@@ -236,7 +236,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
     
     // Progress tracking
     video.addEventListener('timeupdate', () => {
-      // Skip if not in a valid state to report progress
       if (video.paused || video.seeking || isNaN(video.duration)) {
         return;
       }
@@ -255,7 +254,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
             video.duration
           ).subscribe();
         }
-        // Align to the latest 15s bucket to avoid drift
         this.lastProgressTime = Math.floor(video.currentTime / this.progressInterval) * this.progressInterval;
       }
     });
@@ -264,7 +262,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
     video.addEventListener('loadedmetadata', () => {
       console.log(`Loaded event - Film ${this.filmId}, Duration: ${video.duration}s`);
       this.duration = video.duration;
-      // Reset baseline on new metadata
       this.lastProgressTime = 0;
     });
   }

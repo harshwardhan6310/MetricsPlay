@@ -136,5 +136,28 @@ See `.env` in the repo root for all values used by `docker-compose.yml`, includi
 - Kafka: `KAFKA_BROKER_ID`, `KAFKA_ADVERTISED_LISTENERS`, `KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR`, `KAFKA_BOOTSTRAP_SERVERS`
 - Redis: `SPRING_REDIS_HOST`, `SPRING_REDIS_PORT`
 
-## Contributing
-Issues and PRs are welcome.
+## Screenshots
+
+### Login Page
+<img src="backend/src/main/resources/appScreenshots/login.png" alt="Login screen" width="800" />
+
+### Sign Up Page
+<img src="backend/src/main/resources/appScreenshots/signUp.png" alt="Sign up screen" width="800" />
+
+### Catalogue
+<img src="backend/src/main/resources/appScreenshots/catalogue.png" alt="Catalogue" width="800" />
+
+### Live Feed
+Consumes Events from Kafka - frontend consumes from websocket
+<img src="backend/src/main/resources/appScreenshots/liveFeed.png" alt="Live feed" width="800" />
+
+### Dashboard
+<img src="backend/src/main/resources/appScreenshots/dashboard.png" alt="Dashboard" width="800" />
+
+### Video Player
+tracks play|pause|progress|seek|end
+<img src="backend/src/main/resources/appScreenshots/videoPlayer.png" alt="Video player" width="800" />
+
+### Live Viewer Count
+updates live count from redis cache via websocket
+<img src="backend/src/main/resources/appScreenshots/liveViewerCount.png" alt="Live Viewer Count" width="800" />
